@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For You ❤️</title>
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Georgia', serif; scroll-behavior:smooth; }
+body { background: linear-gradient(180deg,#7b1e1e,#a83232,#5a0f0f); color:white; overflow-x:hidden; }
+
+/* Sections */
+section { height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:40px; position:relative; }
+h1{ font-size:60px; }
+h2{ margin-top:20px; }
+.scroll-btn{ position:absolute; bottom:30px; padding:10px 25px; background:#ff4d6d; border:none; border-radius:20px; color:white; cursor:pointer; }
+#typedText{ max-width:700px; font-size:20px; line-height:1.6; min-height:180px; }
+.heart{ font-size:70px; animation:beat 1s infinite; margin:20px 0; }
+@keyframes beat{ 0%,100%{transform:scale(1);} 50%{transform:scale(1.2);} }
+.buttons{ margin-top:20px; position:relative; }
+button{ padding:15px 30px; font-size:18px; border:none; border-radius:30px; cursor:pointer; }
+.yes{ background:#ff4d6d; color:white; margin-right:10px; }
+.no{ background:#333; color:white; position:absolute; }
+#yesPage{ position:fixed; top:0; left:0; width:100%; height:100%; background:radial-gradient(circle,#a83232,#3d0a0a); display:flex; flex-direction:column; justify-content:center; align-items:center; visibility:hidden; opacity:0; transition:0.5s; z-index:10; }
+#yesPage.active{ visibility:visible; opacity:1; }
+canvas{ position:fixed; top:0; left:0; pointer-events:none; z-index:5; }
+.floating-heart{ position:absolute; font-size:20px; color:pink; animation:floatUp linear infinite; pointer-events:none; opacity:0.8; }
+@keyframes floatUp{ 0%{transform:translateY(0) rotate(0deg); opacity:1;} 100%{transform:translateY(-100vh) rotate(360deg); opacity:0;} }
+</style>
+</head>
+
+<body>
+
+<!-- Background Music (Note: Autoplay may be blocked; plays on interaction) -->
+<audio id="bgMusic" loop preload="auto">
+    <source src="https://www.bensound.com/bensound-music/bensound-romantic.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+</audio>
+
+<canvas id="confetti"></canvas>
+<div id="heartsContainer"></div>
+
+<!-- PAGE 1 -->
+<section id="page1">
+    <p>A message just for you</p>
+    <h1>Emanuele ❤️</h1>
+    <button class="scroll-btn" onclick="scrollToPage('page2')">Scroll Down ↓</button>
+</section>
+
+<!-- PAGE 2 -->
+<section id="page2">
+    <div id="typedText"></div>
+    <button class="scroll-btn" onclick="scrollToPage('page3')">Scroll Down ↓</button>
+</section>
+
+<!-- PAGE 3 -->
+<section id="page3">
+    <div class="heart">❤️</div>
+    <h2>Will you be my Valentine?</h2>
+
+    <div class="buttons">
+        <button class="yes" id="yesBtn">YES 💕</button>
+        <button class="no" id="noBtn">NO 😢</button>
+    </div>
+
+    <button class="scroll-btn" onclick="scrollToPage('page1')">Back to Top ↑</button>
+</section>
+
+<!-- YES SCREEN -->
+<div id="yesPage">
+    <h1>SHE SAID YES! 🎉</h1>
+    <p>You made this the best Valentine’s Day ever 💖</p>
+</div>
+
+<script>
+/* Smooth Scroll */
+function scrollToPage(id){
+    document.getElementById(id).scrollIntoView({behavior:"smooth"});
+}
+
+/* Typing Effect with Pause on New Lines */
+const text = `My dearest Emanuele,
+
+There are things in this world that are hard to say —
+because they are deeply felt.
+
+You are my favorite notification,
+my peace,
+my happiness.
+
+And today I just want to ask...
+
+Will you be mine? 💖`;
+
+let i = 0;
+function typeWriter(){
+    if(i < text.length){
+        document.getElementById("typedText").innerHTML += text.charAt(i) === "\n" ? "<br>" : text.charAt(i);
+        i++;
+        setTimeout(typeWriter, text.charAt(i-1)==="\n"?500:35);
+    }
+}
+typeWriter();
+
+/* NO Button Movement */
+const noBtn = document.getElementById("noBtn");
+function moveNo(){
+    const x = Math.random()*200 - 100;
+    const y = Math.random()*150 - 75;
+    noBtn.style.transform = `translate(${x}px, ${y}px)`;
+}
+noBtn.addEventListener("mouseover", moveNo);
+noBtn.addEventListener("click", moveNo);
+noBtn.addEventListener("touchstart", moveNo);
+
+/* Confetti System with Rotation */
+const canvas = document.getElementById("confetti");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let particles = [];
+let confettiRunning = false;
+let confettiInterval;
+
+function createConfetti(){
+    particles = [];
+    for(let i=0;i<120;i++){
+        particles.push({
+            x: Math.random()*canvas.width,
+            y: Math.random()*canvas.height - canvas.height,
+            size: Math.random()*6+4,
+            speed: Math.random()*3+2,
+            color: `hsl(${Math.random()*360}, 100%, 50%)`,
+            angle: Math.random()*360,
+            rotateSpeed: Math.random()*0.1
+        });
+    }
+}
+
+function drawConfetti(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+        ctx.save();
+        ctx.fillStyle = p.color;
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+        ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+        ctx.restore();
+        p.y += p.speed;
+        p.angle += p.rotateSpeed;
+        if(p.y > canvas.height) p.y = -10;
+    });
+}
+
+/* Floating Hearts */
+const heartsContainer = document.getElementById("heartsContainer");
+function createHeart(){
+    const heart = document.createElement("div");
+    heart.classList.add("floating-heart");
+    heart.style.left = Math.random()*100 + "vw";
+    heart.style.fontSize = (10 + Math.random()*30) + "px";
+    heart.style.animationDuration = (3 + Math.random()*5) + "s";
+    heart.textContent = "❤️";
+    heartsContainer.appendChild(heart);
+    setTimeout(()=>heart.remove(), 8000); // Ensure removal
+}
+setInterval(createHeart, 500);
+
+/* YES Button with Enhancements */
+document.getElementById("yesBtn").addEventListener("click", function(){
+    const yesPage = document.getElementById("yesPage");
+    yesPage.classList.add("active");
+
+    // Start confetti (prevent multiple intervals)
+    if(!confettiRunning){
+        confettiRunning = true;
+        createConfetti();
+        confettiInterval = setInterval(drawConfetti, 20);
+    }
+
+    // Heart Explosion
+    createHeartExplosion(this, 30);
+
+    // Play music (fallback for autoplay block)
+    const music = document.getElementById("bgMusic");
+    music.play().catch(e => console.log("Autoplay blocked; music will play on next interaction."));
+});
+
+// Heart Explosion Function (Improved Physics and Fade)
+function createHeartExplosion(button, count){
+    const rect = button.getBoundingClientRect();
+    const centerX = rect.left + rect.width/2;
+    const centerY = rect.top + rect.height/2;
+
+    for(let i=0; i<count; i++){
+        const heart = document.createElement("div");
+        heart.textContent = "❤️";
+        heart.style.position = "fixed";
+        heart.style.left = centerX + "px";
+        heart.style.top = centerY + "px";
+        heart.style.fontSize = (10 + Math.random()*20) + "px";
+        heart.style.pointerEvents = "none";
+        heart.style.zIndex = "15";
+        heart.style.opacity = 1;
+
+        const angle = Math.random()*2*Math.PI;
+        const speed = 2 + Math.random()*4;
+        let vx = Math.cos(angle) * speed;
+        let vy = Math.sin(angle) * speed;
+
+        document.body.appendChild(heart);
+
+        const fadeInterval = setInterval(()=>{
+            centerX += vx;
+            centerY += vy;
+            vy += 0.05; // Gravity
+            heart.style.left = centerX + "px";
+            heart.style.top = centerY + "px";
+            heart.style.opacity -= 0.015; // Smoother fade
+            if(parseFloat(heart.style.opacity) <= 0 || centerY > window.innerHeight){
+                heart.remove();
+                clearInterval(fadeInterval);
+            }
+        }, 20);
+    }
+}
+
+/* Resize Canvas */
+window.addEventListener("resize", ()=>{
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    if(confettiRunning){
+        clearInterval(confettiInterval);
+        createConfetti();
+        confettiInterval = setInterval(drawConfetti, 20);
+    }
+});
+</script>
+
+</body>
+</html>
